@@ -64,67 +64,73 @@ int main() {
 	FILE* input = fopen("mergesort_input.csv", "rb");
 	FILE* output = fopen("output.csv", "wb");
 	if (input == NULL) {
-		printf("error reading file");
 		exit(1);
 	}
 	int size = 0;
 	fseek(input, 0, SEEK_END);
 	size = ftell(input);
 	fseek(input, 0, SEEK_SET);
-	printf(" %d\n", size);
+	// printf("total size of file  %d\n", size);
 
 	char* str = (char*)malloc(size + 1);
 	fread(str, size, 1, input);
 	str[size] = '\0';
 	fclose(input);
 
-	//count no of numbers in current line
-	int numcount = 1;// 1 is for last number
-	int i = 0;
-	while (*(str + i) != '\n') {
-		if (*(str + i) == ',') {
-			numcount++;
-		}
-		i++;
-	}
-	printf("numcount %d\n", numcount);
 
-	int* arr = (int*)malloc(sizeof(int) * numcount);
 
-	// reading numbers
-	i = 0;
-	int count = 0;
+	int	i = 0;//for reading numbers
+	int j = 0;//for counting numbers
 	while (1) {
-		int num = 0;
-		while (*(str + i) >= '0' && *(str + i) <= '9') {
-			num = num * 10 + (*(str + i) - '0');
-			i++;
+		int count = 0;//index for array
+		//count no of numbers in current line
+		int numcount = 1;// 1 is for last number
+		while (*(str + j) != '\n' && *(str + j) != '\0') {
+			if (*(str + j) == ',') {
+				numcount++;
+			}
+			j++;
 		}
 
-		*(arr + count) = num;
-		// printf("num-%d  %d\n", count, num);
-		count++;
-		if (*(str + i) == '\n') {
+		j++;//so it will point to begining of next line
+
+		int* arr = (int*)malloc(sizeof(int) * numcount);
+
+		while (1) {
+			int num = 0;
+			while (*(str + i) >= '0' && *(str + i) <= '9') {
+				num = num * 10 + (*(str + i) - '0');
+				i++;
+			}
+			*(arr + count) = num;
+			count++;
+			if (*(str + i) == '\0') {
+				/* dont increase i if  it was  end of str */
+				break;
+			}
+			if (*(str + i) == '\n') {
+				i++;
+				break;
+			}
+			i++;//if str+i wasnotnumber then skipping it
+		}
+
+		mergeSort(arr, 0, numcount - 1);
+
+		// write in file
+		for (int k = 0; k < numcount; k++) {
+			fprintf(output, "%d", *(arr + k));
+			if (k != numcount - 1)
+				fprintf(output, "%c", ',');
+		};
+		if (*(str + i) != '\0') {
+			fprintf(output, "%c", '\n');
+		}
+		else if (*(str + i) == '\0') {
 			break;
 		}
-		if (*(str + i) == '\0') {
-			break;
-		}
-		i++;
-	}
-	mergeSort(arr, 0, numcount - 1);
-
-	// write infile
-
-	printf("printing array \n ");
-	for (int i = 0; i < numcount; i++) {
-		// printf("element-%d %d \n ", i, array[i]);
-		fprintf(output, "%d", *(arr + i));
-		if (i != numcount - 1)
-			fprintf(output, "%c", ',');
 	}
 
-
-
+	fclose(output);
 	return 0;
 }
